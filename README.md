@@ -29,6 +29,4 @@ A organização das pastas segue os requisitos de documentação técnica e arqu
 Para compreender as decisões de design e a estrutura técnica da plataforma, acesse os documentos na seguinte ordem:
 - Visão Geral: Diagrama de Contexto (C4 Nível 1) para entender a interação do sistema com usuários e sistemas externos.
 - Arquitetura de Containers: Diagrama de Container (C4 Nível 2) para visualizar a decomposição da solução em serviços Azure.
-- Decisões Técnicas:
-      *ADR-001 (Ingestão): Justificativa para o uso de Azure Functions (Serverless).
-      *ADR-002 (Armazenamento): Justificativa para o uso do Azure SQL Database.
+- Decisões Técnicas: ADR-001 (Ingestão): Justificativa para o uso de Azure Functions (Serverless). ADR-002 (Armazenamento): Justificativa para o uso do Azure SQL Database.

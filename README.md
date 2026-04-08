@@ -11,6 +11,8 @@ Este projeto consiste no desenvolvimento de uma Plataforma de Inteligência Oper
 # Estrutura do Repositório
 A organização das pastas segue os requisitos de documentação técnica e arquitetural
 
+''' text
+
 ├── docs/
 │   ├── adr/              # Architecture Decision Records (Registros de Decisões)
 │   │   ├── ADR-001.md    # Estratégia de Ingestão de Dados

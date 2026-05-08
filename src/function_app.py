@@ -18,7 +18,7 @@ def timer_trigger_aula03(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
 
-    logging.info('Python timer trigger function executed.')
+    logging.info('Essa é a aula 03')
 
 @app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
@@ -27,4 +27,4 @@ def timer_trigger_aula04(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
 
-    logging.info('Python timer trigger function executed.')
+    logging.info('Essa não é a aula 03.')

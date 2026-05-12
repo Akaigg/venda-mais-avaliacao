@@ -23,7 +23,7 @@ def extract_pedido(myTimer: func.TimerRequest) -> None:
 
 @app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
-def categoria_produto(myTimer: func.TimerRequest) -> None:
+def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
     logging.info('Python timer trigger function executed.')
 
 @app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,

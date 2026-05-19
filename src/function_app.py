@@ -3,90 +3,31 @@ import azure.functions as func
 
 app = func.FunctionApp()
 
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_cliente(myTimer: func.TimerRequest) -> None:
-    logging.info('tabela cliente.')
 
+from triggers.extract_pedido_item import bp as pedido_item
+from triggers.extract_categoria_produto import bp as categoria_produto
+from triggers.extract_cliente import bp as cliente
+from triggers.extract_entrega import bp as entrega
+from triggers.extract_estoque_movimentacao import bp as estoque_movimentacao
+from triggers.extract_transportadora import bp as transportadora
+from triggers.extract_estoque_saldo import bp as estoque_saldo
+from triggers.extract_regiao import bp as regiao
+from triggers.extract_representante import bp as representante
+from triggers.extract_fornecedor import bp as fornecedor
+from triggers.extract_pedido import bp as pedido
+from triggers.extract_produto import bp as produto
+from triggers.extract_titulo_receber import bp as titulo_receber
 
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_fornecedor(myTimer: func.TimerRequest) -> None:
-    logging.info('tabela fornecedor 3.')
-
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_pedido(myTimer: func.TimerRequest) -> None:
-    logging.info('tabela pedidos')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_entrega(myTimer: func.TimerRequest) -> None:
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_estoque_movimentacao(myTimer: func.TimerRequest) -> None:
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_estoque_saldo(myTimer: func.TimerRequest) -> None:
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_regiao(myTimer: func.TimerRequest) -> None:
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_pedido_item(myTimer: func.TimerRequest) -> None:
-    
-    if myTimer.past_due:
-        logging.info('The timer is past due!')
-
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_produto(myTimer: func.TimerRequest) -> None:
-    
-    if myTimer.past_due:
-        logging.info('The timer is past due!')
-
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_representante(myTimer: func.TimerRequest) -> None:
-    
-    if myTimer.past_due:
-        logging.info('The timer is past due!')
-
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_titulo_receber(myTimer: func.TimerRequest) -> None:
-    
-    if myTimer.past_due:
-        logging.info('The timer is past due!')
-
-    logging.info('Python timer trigger function executed.')
-
-@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def extract_transportadora(myTimer: func.TimerRequest) -> None:
-    
-    if myTimer.past_due:
-        logging.info('The timer is past due!')
-
-    logging.info('Python timer trigger function executed.')
+app.register_functions(cliente)
+app.register_functions(pedido_item)
+app.register_functions(categoria_produto)
+app.register_functions(entrega)
+app.register_functions(estoque_movimentacao)
+app.register_functions(transportadora)
+app.register_functions(estoque_saldo)
+app.register_functions(regiao)
+app.register_functions(representante)
+app.register_functions(fornecedor)
+app.register_functions(pedido)
+app.register_functions(produto)
+app.register_functions(titulo_receber)

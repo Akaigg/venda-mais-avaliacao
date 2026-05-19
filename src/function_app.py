@@ -19,6 +19,7 @@ from triggers.extract_produto import bp as produto
 from triggers.extract_titulo_receber import bp as titulo_receber
 
 app.register_functions(cliente)
+
 app.register_functions(pedido_item)
 app.register_functions(categoria_produto)
 app.register_functions(entrega)

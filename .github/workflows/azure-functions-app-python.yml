@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'azfun-MatheusKarpinski'
+  AZURE_FUNCTIONAPP_NAME: 'azfun-Vitor'
   PYTHON_VERSION: '3.13'
 
 jobs:

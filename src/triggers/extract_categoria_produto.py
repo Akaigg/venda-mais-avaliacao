@@ -13,4 +13,12 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
     sql_user = os.getenv('SQL_USER_SOURCE')
     sql_pass = os.getenv('SQL_PASSWORD_SOURCE')
 
+
+    connection_string = f'Driver={{ODBC Driver 17 for SQL Server}};Server:{sql_server};Database={sql_database};usuario={sql_user};senha={sql_pass}'
+
+    try:
+        conn = pyodbc.connect(connection_string)
+    except pyodbc.Error as e:
+        logging.error(f"Erro na conexão: {e}")
+
     logging.info(f"""servidor: {sql_server}, banco: {sql_database}, usuario: {sql_user}, senha: {sql_pass}""")

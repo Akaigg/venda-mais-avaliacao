@@ -1,7 +1,7 @@
 import logging
 import azure.functions as func
 import os
-import pyodbc
+import pymssql
 
 bp = func.Blueprint()
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
@@ -12,13 +12,8 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
     sql_database = os.getenv('SQL_DATABASE_SOURCE')
     sql_user = os.getenv('SQL_USER_SOURCE')
     sql_pass = os.getenv('SQL_PASSWORD_SOURCE')
-
-
-    connection_string = f'Driver={{ODBC Driver 17 for SQL Server}};Server:{sql_server};Database={sql_database};usuario={sql_user};senha={sql_pass}'
-
-    try:
-        conn = pyodbc.connect(connection_string)
-    except pyodbc.Error as e:
-        logging.error(f"Erro na conexão: {e}")
+    
+    conn = pymssql.connect(server=sql_server, user=sql_user, password=sql_pass, database=sql_database)
 
     logging.info(f"""servidor: {sql_server}, banco: {sql_database}, usuario: {sql_user}, senha: {sql_pass}""")
+    

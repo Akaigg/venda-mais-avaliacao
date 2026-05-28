@@ -25,23 +25,25 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
         f"TrustServerCertificate=yes;"
     )
 
-    logging.info("Buscando a lista de tabelas existentes no banco de dados...")
+    logging.info(f"Iniciando consulta SELECT na tabela erp.categoria_produto...")
     
     try:
         with pyodbc.connect(connection_string) as conn:
             with conn.cursor() as cursor:
                 
-                query = "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'"
+                query = "SELECT TOP 10 * FROM erp.categoria_produto" 
                 cursor.execute(query)
+                
                 rows = cursor.fetchall()
                 
                 if not rows:
-                    logging.info("Nenhuma tabela foi encontrada neste banco de dados.")
+                    logging.info("A tabela erp.categoria_produto está vazia.")
                 else:
-                    logging.info(f"--- LISTA DE TABELAS ENCONTRADAS (Total: {len(rows)}) ---")
+                    logging.info(f"Quantidade de registros encontrados: {len(rows)}")
                     for row in rows:
-                        logging.info(f"Tabela disponível: {row[0]}.{row[1]}")
-                    logging.info("--------------------------------------------------")
+                        logging.info(f"Registro encontrado: {list(row)}")
+                        
+                logging.info("Extração de teste concluída com sucesso!")
                 
     except Exception as e:
-        logging.error(f"Erro ao mapear as tabelas: {str(e)}")
+        logging.error(f"Erro ao executar o SELECT na tabela erp.categoria_produto: {str(e)}")

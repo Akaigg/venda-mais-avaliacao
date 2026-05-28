@@ -8,7 +8,6 @@ bp = func.Blueprint()
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
 def extract_cliente(myTimer: func.TimerRequest) -> None:
 
-    # 1. Busca as credenciais das Variáveis de Ambiente da Azure
     sql_server = os.getenv('SQL_SERVER_SOURCE')
     sql_database = os.getenv('SQL_DATABASE_SOURCE')
     sql_user = os.getenv('SQL_USER_SOURCE')

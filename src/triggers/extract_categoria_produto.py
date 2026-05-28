@@ -21,13 +21,29 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
         f"DATABASE={sql_database};"
         f"UID={sql_user};"
         f"PWD={sql_pass};"
+        f"Encrypt=yes;"
+        f"TrustServerCertificate=yes;"
     )
 
-    logging.info(f"Iniciando tentativa de conexão no banco: {sql_database}")
+    logging.info(f"Iniciando consulta SELECT no banco: {sql_database}")
     
     try:
         with pyodbc.connect(connection_string) as conn:
             with conn.cursor() as cursor:
-                logging.info("Sucesso! Conexão estabelecida com pyodbc na Azure.")             
+                query = "SELECT TOP 10 id, nome FROM CategoriaProduto" 
+                cursor.execute(query)
+                
+                rows = cursor.fetchall()
+                
+                if not rows:
+                    logging.info("A consulta não retornou nenhuma categoria.")
+                else:
+                    logging.info(f"Quantidade de registros encontrados: {len(rows)}")
+            
+                    for row in rows:
+                        logging.info(f"ID: {row[0]} | Nome da Categoria: {row[1]}")
+                        
+                logging.info("Extração de categorias finalizada com sucesso!")
+                
     except Exception as e:
-        logging.error(f"Erro ao conectar com o banco de dados via pyodbc: {str(e)}")
+        logging.error(f"Erro ao executar o SELECT no banco de dados: {str(e)}")

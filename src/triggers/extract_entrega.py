@@ -16,7 +16,7 @@ def extract_entrega(myTimer: func.TimerRequest) -> None:
     
     connection_url = (
         f"mssql+pyodbc://{sql_user}:{sql_pass}@{sql_server}/{sql_database}"
-        f"?driver={sql_driver}&encrypt=true&trustservercertificate=true"
+        f"?driver={sql_driver}"
     )
 
     logging.info("Iniciando conexão com SQLAlchemy na tabela erp.entrega...")

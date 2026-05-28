@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 bp = func.Blueprint()
 
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
-def extract_cliente_sqlalchemy(myTimer: func.TimerRequest) -> None:  # Nome alterado para evitar qualquer colisão
+def extract_cliente_sqlalchemy(myTimer: func.TimerRequest) -> None: 
 
     sql_server = os.getenv('SQL_SERVER_SOURCE')
     sql_database = os.getenv('SQL_DATABASE_SOURCE')
@@ -14,7 +14,6 @@ def extract_cliente_sqlalchemy(myTimer: func.TimerRequest) -> None:  # Nome alte
     sql_pass = os.getenv('SQL_PASSWORD_SOURCE')
     sql_driver = "ODBC Driver 18 for SQL Server"
     
-    # Montagem da String de Conexão do SQLAlchemy para o SQL Server via pyodbc
     connection_url = (
         f"mssql+pyodbc://{sql_user}:{sql_pass}@{sql_server}/{sql_database}"
         f"?driver={sql_driver}&Encrypt=yes&TrustServerCertificate=ye"

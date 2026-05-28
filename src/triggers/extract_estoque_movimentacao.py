@@ -14,32 +14,33 @@ def extract_estoque_movimentacao(myTimer: func.TimerRequest) -> None:
     
     try:
         with sqlite3.connect(db_file) as conn:
-            with conn.cursor() as cursor:
+            
+            cursor = conn.cursor()
                 
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS estoque_movimentacao (
-                        id INTEGER PRIMARY KEY,
-                        produto TEXT,
-                        quantidade REAL
-                    )
-                """)
-
-                cursor.execute("INSERT INTO estoque_movimentacao (produto, quantidade) VALUES ('Produto Teste', 50.0)")
-                conn.commit()
-
-                query = "SELECT * FROM estoque_movimentacao LIMIT 10" 
-                cursor.execute(query)
-                
-                rows = cursor.fetchall()
-                
-                if not rows:
-                    logging.info("A tabela estoque_movimentacao está vazia.")
-                else:
-                    logging.info(f"Quantidade de registros encontrados no SQLite: {len(rows)}")
-                    for row in rows:
-                        logging.info(f"Movimentação de Estoque: {list(row)}")
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS estoque_movimentacao (
+                    id INTEGER PRIMARY KEY,
+                    produto TEXT,
+                    quantidade REAL
+                )
+            """)
+            cursor.execute("INSERT INTO estoque_movimentacao (produto, quantidade) VALUES ('Produto Teste', 50.0)")
+            conn.commit()
+            query = "SELECT * FROM estoque_movimentacao LIMIT 10" 
+            cursor.execute(query)
+            
+            rows = cursor.fetchall()
+            
+            if not rows:
+                logging.info("A tabela estoque_movimentacao está vazia.")
+            else:
+                logging.info(f"Quantidade de registros encontrados no SQLite: {len(rows)}")
+                for row in rows:
+                    logging.info(f"Movimentação de Estoque: {list(row)}")
+            
+            cursor.close()
                         
-                logging.info("Consulta via sqlite3 finalizada com sucesso!")
+            logging.info("Consulta via sqlite3 finalizada com sucesso!")
                 
     except Exception as e:
         logging.error(f"Erro ao operar na base de dados SQLite: {str(e)}")

@@ -25,25 +25,23 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
         f"TrustServerCertificate=yes;"
     )
 
-    logging.info(f"Iniciando consulta SELECT no banco: {sql_database}")
+    logging.info("Buscando a lista de tabelas existentes no banco de dados...")
     
     try:
         with pyodbc.connect(connection_string) as conn:
             with conn.cursor() as cursor:
-                query = "SELECT TOP 10 id, nome FROM CategoriaProduto" 
-                cursor.execute(query)
                 
+                query = "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'"
+                cursor.execute(query)
                 rows = cursor.fetchall()
                 
                 if not rows:
-                    logging.info("A consulta não retornou nenhuma categoria.")
+                    logging.info("Nenhuma tabela foi encontrada neste banco de dados.")
                 else:
-                    logging.info(f"Quantidade de registros encontrados: {len(rows)}")
-            
+                    logging.info(f"--- LISTA DE TABELAS ENCONTRADAS (Total: {len(rows)}) ---")
                     for row in rows:
-                        logging.info(f"ID: {row[0]} | Nome da Categoria: {row[1]}")
-                        
-                logging.info("Extração de categorias finalizada com sucesso!")
+                        logging.info(f"Tabela disponível: {row[0]}.{row[1]}")
+                    logging.info("--------------------------------------------------")
                 
     except Exception as e:
-        logging.error(f"Erro ao executar o SELECT no banco de dados: {str(e)}")
+        logging.error(f"Erro ao mapear as tabelas: {str(e)}")

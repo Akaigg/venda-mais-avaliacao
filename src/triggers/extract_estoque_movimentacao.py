@@ -1,15 +1,45 @@
 import logging
 import azure.functions as func
 import os
+import sqlite3
 
 bp = func.Blueprint()
-@bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
+
+@bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
 def extract_estoque_movimentacao(myTimer: func.TimerRequest) -> None:
 
-    sql_server = os.getenv("SQL_SERVER_SOURCE")
-    sql_database = os.getenv("SQL_DATABASE_SOURCE")
-    sql_user = os.getenv("SQL_USER_SOURCE")
-    sql_pass = os.getenv("SQL_PASSWORD_SOURCE")
+    db_file = "/tmp/estoque_local.db"
 
-    logging.info(f"""servidor: {sql_server}, banco: {sql_database}, usuario: {sql_user}, senha: {sql_pass}""")
+    logging.info(f"Iniciando conexão com a base de dados SQLite local: {db_file}")
+    
+    try:
+        with sqlite3.connect(db_file) as conn:
+            with conn.cursor() as cursor:
+                
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS estoque_movimentacao (
+                        id INTEGER PRIMARY KEY,
+                        produto TEXT,
+                        quantidade REAL
+                    )
+                """)
+
+                cursor.execute("INSERT INTO estoque_movimentacao (produto, quantidade) VALUES ('Produto Teste', 50.0)")
+                conn.commit()
+
+                query = "SELECT * FROM estoque_movimentacao LIMIT 10" 
+                cursor.execute(query)
+                
+                rows = cursor.fetchall()
+                
+                if not rows:
+                    logging.info("A tabela estoque_movimentacao está vazia.")
+                else:
+                    logging.info(f"Quantidade de registros encontrados no SQLite: {len(rows)}")
+                    for row in rows:
+                        logging.info(f"Movimentação de Estoque: {list(row)}")
+                        
+                logging.info("Consulta via sqlite3 finalizada com sucesso!")
+                
+    except Exception as e:
+        logging.error(f"Erro ao operar na base de dados SQLite: {str(e)}")

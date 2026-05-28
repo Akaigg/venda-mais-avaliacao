@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 bp = func.Blueprint()
 
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
-def extract_cliente(myTimer: func.TimerRequest) -> None:
+def extract_cliente_sqlalchemy(myTimer: func.TimerRequest) -> None:  # Nome alterado para evitar qualquer colisão
 
     sql_server = os.getenv('SQL_SERVER_SOURCE')
     sql_database = os.getenv('SQL_DATABASE_SOURCE')
@@ -14,12 +14,13 @@ def extract_cliente(myTimer: func.TimerRequest) -> None:
     sql_pass = os.getenv('SQL_PASSWORD_SOURCE')
     sql_driver = "ODBC Driver 18 for SQL Server"
     
+    # Montagem da String de Conexão do SQLAlchemy para o SQL Server via pyodbc
     connection_url = (
         f"mssql+pyodbc://{sql_user}:{sql_pass}@{sql_server}/{sql_database}"
-        f"?driver={sql_driver}&Encrypt=yes&TrustServerCertificate=yes"
+        f"?driver={sql_driver}&Encrypt=yes&TrustServerCertificate=ye"
     )
 
-    logging.info("Iniciando conexão com SQLAlchemy (SQL Puro) na tabela erp.cliente...")
+    logging.info("Iniciando conexão com SQLAlchemy na tabela erp.cliente...")
     
     try:
         engine = create_engine(connection_url)
@@ -27,7 +28,6 @@ def extract_cliente(myTimer: func.TimerRequest) -> None:
         with engine.connect() as conn:
             query = text("SELECT TOP 10 * FROM erp.cliente")
             result = conn.execute(query)
-            
             rows = result.fetchall()
             
             if not rows:
@@ -37,7 +37,7 @@ def extract_cliente(myTimer: func.TimerRequest) -> None:
                 for row in rows:
                     logging.info(f"Cliente: {list(row)}")
                     
-            logging.info("Extração via SQLAlchemy concluída com sucesso!")
+            logging.info("Extração de clientes via SQLAlchemy concluída!")
             
     except Exception as e:
         logging.error(f"Erro ao executar o SELECT via SQLAlchemy: {str(e)}")

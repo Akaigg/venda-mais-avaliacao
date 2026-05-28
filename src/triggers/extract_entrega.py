@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 bp = func.Blueprint()
 
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
-def extract_cliente_sqlalchemy(myTimer: func.TimerRequest) -> None: 
+def extract_entrega(myTimer: func.TimerRequest) -> None:
 
     sql_server = os.getenv('SQL_SERVER_SOURCE')
     sql_database = os.getenv('SQL_DATABASE_SOURCE')
@@ -16,27 +16,27 @@ def extract_cliente_sqlalchemy(myTimer: func.TimerRequest) -> None:
     
     connection_url = (
         f"mssql+pyodbc://{sql_user}:{sql_pass}@{sql_server}/{sql_database}"
-        f"?driver={sql_driver}&Encrypt=yes&TrustServerCertificate=ye"
+        f"?driver={sql_driver}&encrypt=true&trustservercertificate=true"
     )
 
-    logging.info("Iniciando conexão com SQLAlchemy na tabela erp.cliente...")
+    logging.info("Iniciando conexão com SQLAlchemy na tabela erp.entrega...")
     
     try:
         engine = create_engine(connection_url)
         
         with engine.connect() as conn:
-            query = text("SELECT TOP 10 * FROM erp.cliente")
+            query = text("SELECT TOP 10 * FROM erp.entrega")
             result = conn.execute(query)
             rows = result.fetchall()
             
             if not rows:
-                logging.info("A tabela erp.cliente está vazia.")
+                logging.info("A tabela erp.entrega está vazia.")
             else:
                 logging.info(f"Quantidade de registros encontrados: {len(rows)}")
                 for row in rows:
-                    logging.info(f"Cliente: {list(row)}")
+                    logging.info(f"Entrega: {list(row)}")
                     
-            logging.info("Extração de clientes via SQLAlchemy concluída!")
+            logging.info("Extração de entregas via SQLAlchemy concluída!")
             
     except Exception as e:
-        logging.error(f"Erro ao executar o SELECT via SQLAlchemy: {str(e)}")
+        logging.error(f"Erro ao executar o SELECT na tabela erp.entrega via SQLAlchemy: {str(e)}")

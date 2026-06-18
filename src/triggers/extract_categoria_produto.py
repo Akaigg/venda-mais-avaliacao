@@ -18,7 +18,7 @@ def extract_categoria_produtos(myTimer: func.TimerRequest) -> None:
     sql_user_dest = os.getenv("SQL_USER_DESTINATION")
     sql_pass_dest = os.getenv("SQL_PASSWORD_DESTINATION")
 
-    logging.info(f"Lendo de: {sql_database_source} | Gravando em: {sql_database_dest}")
+    logging.info(f"Lendo {sql_database_source} Salvando {sql_database_dest}")
 
     conn_str_source = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -47,7 +47,7 @@ def extract_categoria_produtos(myTimer: func.TimerRequest) -> None:
             rows = cursor_source.fetchall()
 
             if not rows:
-                logging.warning("Nenhum registro encontrado na origem (erp.categoria_produto).")
+                logging.warning("Nenhum registro (erp.categoria_produto).")
                 return
 
             columns = [column[0] for column in cursor_source.description]
@@ -70,7 +70,6 @@ def extract_categoria_produtos(myTimer: func.TimerRequest) -> None:
             
             cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} OFF")
 
-            # Efetiva as transações no banco de destino
             conn_dest.commit()
 
             logging.info(f"Carga finalizada: {len(rows)} registros inseridos com sucesso no destino.")          

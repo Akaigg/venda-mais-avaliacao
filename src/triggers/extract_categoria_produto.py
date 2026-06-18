@@ -1,53 +1,83 @@
 import logging
 import azure.functions as func
 import os
-import pymssql
+import pyodbc
 
 bp = func.Blueprint()
 
-@bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
-def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
-    logging.info("Iniciando EL: dbo.categoria_produto")
+@bp.timer_trigger(schedule="0 0 6 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
+def extract_categoria_produtos(myTimer: func.TimerRequest) -> None:
 
     sql_server_source = os.getenv("SQL_SERVER_SOURCE")
     sql_database_source = os.getenv("SQL_DATABASE_SOURCE")
     sql_user_source = os.getenv("SQL_USER_SOURCE")
-    sql_pass_source = os.getenv("SQL_PASSWORD_SOURCE")
+    sql_password_source = os.getenv("SQL_PASSWORD_SOURCE")
 
     sql_server_dest = os.getenv("SQL_SERVER_DESTINATION")
     sql_database_dest = os.getenv("SQL_DATABASE_DESTINATION")
     sql_user_dest = os.getenv("SQL_USER_DESTINATION")
     sql_pass_dest = os.getenv("SQL_PASSWORD_DESTINATION")
 
-    colunas_sem_id = (
-        "cd_categoria, nm_categoria, fl_ativo, dt_inclusao, "
-        "dt_atualizacao, nm_sistema_origem, cd_registro_origem"
+    logging.info(f"Lendo de: {sql_database_source} | Gravando em: {sql_database_dest}")
+
+    conn_str_source = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server_source};"
+        f"DATABASE={sql_database_source};"
+        f"UID={sql_user_source};"
+        f"PWD={sql_password_source};"
+        "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
     )
-    
-    query_extract = f"SELECT {colunas_sem_id} FROM [dbo].[categoria_produto]"
-    query_load = f"INSERT INTO [dbo].[categoria_produto] ({colunas_sem_id}) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
+    conn_str_dest = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server_dest};"
+        f"DATABASE={sql_database_dest};"
+        f"UID={sql_user_dest};"
+        f"PWD={sql_password_dest};"
+        "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+    )
+   
     try:
-        logging.info("Conectando na Origem...")
-        with pymssql.connect(server=sql_server_source, user=sql_user_source, password=sql_pass_source, database=sql_database_source) as conn_source:
-            with conn_source.cursor() as cursor_source:
-                cursor_source.execute(query_extract)
-                rows = cursor_source.fetchall()
-                
-                if not rows:
-                    logging.info("Origem vazia.")
-                    return
-                
-                logging.info(f"{len(rows)} registros extraídos.")
+        with pyodbc.connect(conn_str_source) as conn_source:
+            cursor_source = conn_source.cursor()
+            
+            query_select = "SELECT * FROM erp.categoria_produto"
+            cursor_source.execute(query_select)
+            rows = cursor_source.fetchall()
 
-        logging.info("Conectando no Destino...")
-        with pymssql.connect(server=sql_server_dest, user=sql_user_dest, password=sql_pass_dest, database=sql_database_dest) as conn_dest:
-            with conn_dest.cursor() as cursor_dest:
-                cursor_dest.execute("TRUNCATE TABLE [dbo].[categoria_produto]")
-                cursor_dest.executemany(query_load, rows)
-                conn_dest.commit()
-                
-        logging.info("Pipeline executada com sucesso.")
+            if not rows:
+                logging.warning("Nenhum registro encontrado na origem (erp.categoria_produto).")
+                return
 
+            columns = [column[0] for column in cursor_source.description]
+            logging.info(f"Extração bem-sucedida: {len(rows)} registros encontrados.")
+
+        with pyodbc.connect(conn_str_dest) as conn_dest:
+            cursor_dest = conn_dest.cursor()
+
+            table_name = "dbo.categoria_produto"
+
+            cursor_dest.execute(f"DELETE FROM {table_name}")
+            logging.info(f"Tabela de destino ({table_name}) limpa.")
+
+            placeholders = ",".join(["?" for _ in columns])
+            insert_query = f"INSERT INTO {table_name} ({','.join(columns)}) VALUES ({placeholders})"
+
+            cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} ON")
+            
+            cursor_dest.executemany(insert_query, rows)
+            
+            cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} OFF")
+
+            # Efetiva as transações no banco de destino
+            conn_dest.commit()
+
+            logging.info(f"Carga finalizada: {len(rows)} registros inseridos com sucesso no destino.")          
+
+    except pyodbc.Error as e:
+        logging.error(f"Erro de SQL: {str(e)}")
+        raise
     except Exception as e:
-        logging.error(f"Erro na pipeline: {str(e)}")
+        logging.error(f"Erro inesperado: {str(e)}")
+        raise

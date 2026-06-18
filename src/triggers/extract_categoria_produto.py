@@ -34,45 +34,41 @@ def extract_categoria_produtos(myTimer: func.TimerRequest) -> None:
         f"SERVER={sql_server_dest};"
         f"DATABASE={sql_database_dest};"
         f"UID={sql_user_dest};"
-        f"PWD={sql_password_dest};"
+        f"PWD={sql_pass_dest};"
         "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
     )
    
     try:
         with pyodbc.connect(conn_str_source) as conn_source:
-            cursor_source = conn_source.cursor()
-            
-            query_select = "SELECT * FROM erp.categoria_produto"
-            cursor_source.execute(query_select)
-            rows = cursor_source.fetchall()
+            with conn_source.cursor() as cursor_source:
+                query_select = "SELECT * FROM erp.categoria_produto"
+                cursor_source.execute(query_select)
+                rows = cursor_source.fetchall()
 
-            if not rows:
-                logging.warning("Nenhum registro (erp.categoria_produto).")
-                return
+                if not rows:
+                    logging.warning("Nenhum registro encontrado (erp.categoria_produto).")
+                    return
 
-            columns = [column[0] for column in cursor_source.description]
-            logging.info(f"Extração bem-sucedida: {len(rows)} registros encontrados.")
+                columns = [column[0] for column in cursor_source.description]
+                logging.info(f"Extração bem-sucedida: {len(rows)} registros encontrados.")
 
         with pyodbc.connect(conn_str_dest) as conn_dest:
-            cursor_dest = conn_dest.cursor()
+            with conn_dest.cursor() as cursor_dest:
+                table_name = "dbo.categoria_produto"
 
-            table_name = "dbo.categoria_produto"
+                cursor_dest.execute(f"DELETE FROM {table_name}")
+                logging.info(f"Tabela de destino ({table_name}) limpa.")
 
-            cursor_dest.execute(f"DELETE FROM {table_name}")
-            logging.info(f"Tabela de destino ({table_name}) limpa.")
+                cols_str = ",".join(columns)
+                placeholders = ",".join(["?" for _ in columns])
+                insert_query = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders})"
 
-            placeholders = ",".join(["?" for _ in columns])
-            insert_query = f"INSERT INTO {table_name} ({','.join(columns)}) VALUES ({placeholders})"
+                cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} ON")
+                cursor_dest.executemany(insert_query, rows)
+                cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} OFF")
 
-            cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} ON")
-            
-            cursor_dest.executemany(insert_query, rows)
-            
-            cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} OFF")
-
-            conn_dest.commit()
-
-            logging.info(f"Carga finalizada: {len(rows)} registros inseridos com sucesso no destino.")          
+                conn_dest.commit()
+                logging.info(f"Carga finalizada: {len(rows)} registros inseridos com sucesso no destino.")          
 
     except pyodbc.Error as e:
         logging.error(f"Erro de SQL: {str(e)}")

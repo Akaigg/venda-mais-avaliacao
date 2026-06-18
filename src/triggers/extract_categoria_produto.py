@@ -24,9 +24,8 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
         "dt_atualizacao, nm_sistema_origem, cd_registro_origem"
     )
     
-    query_extract = f"SELECT {colunas_sem_id} FROM dbo.categoria_produto"
-    
-    query_load = f"INSERT INTO dbo.categoria_produto ({colunas_sem_id}) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    query_extract = f"SELECT {colunas_sem_id} FROM [dbo].[categoria_produto]"
+    query_load = f"INSERT INTO [dbo].[categoria_produto] ({colunas_sem_id}) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
     try:
         logging.info("Conectando na Origem...")
@@ -44,7 +43,7 @@ def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
         logging.info("Conectando no Destino...")
         with pymssql.connect(server=sql_server_dest, user=sql_user_dest, password=sql_pass_dest, database=sql_database_dest) as conn_dest:
             with conn_dest.cursor() as cursor_dest:
-                cursor_dest.execute("TRUNCATE TABLE dbo.categoria_produto")
+                cursor_dest.execute("TRUNCATE TABLE [dbo].[categoria_produto]")
                 cursor_dest.executemany(query_load, rows)
                 conn_dest.commit()
                 

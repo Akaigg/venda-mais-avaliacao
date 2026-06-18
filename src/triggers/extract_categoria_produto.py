@@ -6,8 +6,8 @@ import pymssql
 bp = func.Blueprint()
 
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
-def extract_titulo_receber(myTimer: func.TimerRequest) -> None:
-    logging.info("Iniciando EL: dbo.titulo_receber")
+def extract_categoria_produto(myTimer: func.TimerRequest) -> None:
+    logging.info("Iniciando EL: dbo.categoria_produto")
 
     sql_server_source = os.getenv("SQL_SERVER_SOURCE")
     sql_database_source = os.getenv("SQL_DATABASE_SOURCE")
@@ -20,13 +20,12 @@ def extract_titulo_receber(myTimer: func.TimerRequest) -> None:
     sql_pass_dest = os.getenv("SQL_PASSWORD_DESTINATION")
 
     colunas_sem_id = (
-        "nr_titulo, id_cliente, id_pedido, dt_emissao, dt_vencimento, "
-        "dt_pagamento, vl_titulo, vl_recebido, ds_status_titulo, "
-        "dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem"
+        "cd_categoria, nm_categoria, fl_ativo, dt_inclusao, "
+        "dt_atualizacao, nm_sistema_origem, cd_registro_origem"
     )
     
-    query_extract = f"SELECT {colunas_sem_id} FROM dbo.titulo_receber"
-    query_load = f"INSERT INTO dbo.titulo_receber ({colunas_sem_id}) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    query_extract = f"SELECT {colunas_sem_id} FROM dbo.categoria_produto"
+    query_load = f"INSERT INTO dbo.categoria_produto ({colunas_sem_id}) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
     try:
         logging.info("Conectando na Origem...")
@@ -44,7 +43,7 @@ def extract_titulo_receber(myTimer: func.TimerRequest) -> None:
         logging.info("Conectando no Destino...")
         with pymssql.connect(server=sql_server_dest, user=sql_user_dest, password=sql_pass_dest, database=sql_database_dest) as conn_dest:
             with conn_dest.cursor() as cursor_dest:
-                cursor_dest.execute("TRUNCATE TABLE dbo.titulo_receber")
+                cursor_dest.execute("TRUNCATE TABLE dbo.categoria_produto")
                 cursor_dest.executemany(query_load, rows)
                 conn_dest.commit()
                 

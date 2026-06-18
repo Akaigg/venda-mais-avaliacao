@@ -1,72 +1,78 @@
 import logging
 import azure.functions as func
 import os
-import time
 import pyodbc
-import pymssql
 
 bp = func.Blueprint()
 
 @bp.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
 def extract_titulo_receber(myTimer: func.TimerRequest) -> None:
-    sql_server = os.getenv("SQL_SERVER_SOURCE")
-    sql_database = os.getenv("SQL_DATABASE_SOURCE")
-    sql_user = os.getenv("SQL_USER_SOURCE")
-    sql_pass = os.getenv("SQL_PASSWORD_SOURCE")
-    
-    # Query idêntica para o teste de volumetria
-    query = "SELECT * FROM erp.titulo_receber"
-    
-    logging.info("--- POC ---")
 
-    sql_driver = "ODBC Driver 18 for SQL Server"
-    connection_string_odbc = (
-        f"DRIVER={{{sql_driver}}};SERVER={sql_server};DATABASE={sql_database};"
-        f"UID={sql_user};PWD={sql_pass};Encrypt=yes;TrustServerCertificate=yes;"
+    sql_server_source = os.getenv("SQL_SERVER_SOURCE")
+    sql_database_source = os.getenv("SQL_DATABASE_SOURCE")
+    sql_user_source = os.getenv("SQL_USER_SOURCE")
+    sql_password_source = os.getenv("SQL_PASSWORD_SOURCE")
+
+    sql_server_dest = os.getenv("SQL_SERVER_DESTINATION")
+    sql_database_dest = os.getenv("SQL_DATABASE_DESTINATION")
+    sql_user_dest = os.getenv("SQL_USER_DESTINATION")
+    sql_pass_dest = os.getenv("SQL_PASSWORD_DESTINATION")
+
+    logging.info(f"Lendo {sql_database_source} Salvando {sql_database_dest}")
+
+    conn_str_source = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server_source};"
+        f"DATABASE={sql_database_source};"
+        f"UID={sql_user_source};"
+        f"PWD={sql_password_source};"
+        "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
     )
-    
-    tempos_pyodbc = []
-    qtd_registros_odbc = 0
-    
-    for i in range(1, 3):
-        start_time = time.time()
-        try:
-            with pyodbc.connect(connection_string_odbc) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(query)
-                    rows = cursor.fetchall() # Traz todas as linhas para a memória
-                    qtd_registros_odbc = len(rows)
-            end_time = time.time()
-            exec_time = end_time - start_time
-            tempos_pyodbc.append(exec_time)
-            logging.info(f"[pyodbc] Execução {i}: {exec_time:.4f} segundos")
-        except Exception as e:
-            logging.error(f"[pyodbc] Erro na execução {i}: {str(e)}")
-            
-    media_pyodbc = sum(tempos_pyodbc) / len(tempos_pyodbc) if tempos_pyodbc else 0
 
-    tempos_pymssql = []
-    qtd_registros_mssql = 0
-    
-    for i in range(1, 3):
-        start_time = time.time()
-        try:
-            with pymssql.connect(server=sql_server, user=sql_user, password=sql_pass, database=sql_database) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(query)
-                    rows = cursor.fetchall() 
-                    qtd_registros_mssql = len(rows)
-            end_time = time.time()
-            exec_time = end_time - start_time
-            tempos_pymssql.append(exec_time)
-            logging.info(f"[pymssql] Execução {i}: {exec_time:.4f} segundos")
-        except Exception as e:
-            logging.error(f"[pymssql] Erro na execução {i}: {str(e)}")
-            
-    media_pymssql = sum(tempos_pymssql) / len(tempos_pymssql) if tempos_pymssql else 0
+    conn_str_dest = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server_dest};"
+        f"DATABASE={sql_database_dest};"
+        f"UID={sql_user_dest};"
+        f"PWD={sql_pass_dest};"
+        "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+    )
+   
+    try:
+        with pyodbc.connect(conn_str_source) as conn_source:
+            with conn_source.cursor() as cursor_source:
+                query_select = "SELECT * FROM erp.titulo_receber"
+                cursor_source.execute(query_select)
+                rows = cursor_source.fetchall()
 
-    logging.info("--- RESULTADO FINAL DA POC ---")
-    logging.info(f"Tabela testada: erp.titulo_receber (Registros: {qtd_registros_odbc})")
-    logging.info(f"Tempo Médio pyodbc: {media_pyodbc:.4f} segundos")
-    logging.info(f"Tempo Médio pymssql: {media_pymssql:.4f} segundos")
-    logging.info("--------------------------------")
+                if not rows:
+                    logging.warning("Nenhum registro encontrado (erp.titulo_receber).")
+                    return
+
+                columns = [column[0] for column in cursor_source.description]
+                logging.info(f"Extração bem-sucedida: {len(rows)} registros encontrados.")
+
+        with pyodbc.connect(conn_str_dest) as conn_dest:
+            with conn_dest.cursor() as cursor_dest:
+                table_name = "dbo.titulo_receber"
+
+                cursor_dest.execute(f"DELETE FROM {table_name}")
+                logging.info(f"Tabela de destino ({table_name}) limpa.")
+
+                cols_str = ",".join(columns)
+                placeholders = ",".join(["?" for _ in columns])
+                insert_query = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders})"
+
+                cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} ON")
+                cursor_dest.executemany(insert_query, rows)
+                cursor_dest.execute(f"SET IDENTITY_INSERT {table_name} OFF")
+
+                conn_dest.commit()
+                logging.info(f"Carga finalizada: {len(rows)} registros inseridos com sucesso no destino.")          
+
+    except pyodbc.Error as e:
+        logging.error(f"Erro de SQL: {str(e)}")
+        raise
+    except Exception as e:
+        logging.error(f"Erro inesperado: {str(e)}")
+        raise

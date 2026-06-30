@@ -40,19 +40,23 @@ O dashboard desenvolvido utilizando os dados extraídos do ERP do professor e pr
 # Clientes por região
 
 Esse gráfico de pizza apresenta a quantidade de clientes por regiões do Brasil.
+
 ![Circuit-Breaker](img/Pizza.png)
 
-# Quantidade de produto por categoria
+# Produto por categoria
 
 Esse gráfico de barras indica a quantidade de produtos em estoque por categoria.
+
 ![Circuit-Breaker](img/Barra.png)
 
-# Quantidade de entrega por transportadora
+# Entrega por transportadora
 
 Esse gráfico de rosca apresenta a quantidade de entrega feita por cada transportadora parceira.
+
 ![Circuit-Breaker](img/Rosca.png)
 
 # Dashboard completo
 
 Visualização geral dos dados extraídos do ERP 
+
 ![Circuit-Breaker](img/Geral.png)

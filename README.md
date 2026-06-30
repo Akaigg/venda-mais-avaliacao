@@ -44,12 +44,12 @@ O dashboard desenvolvido utilizando os dados extraídos do ERP do professor e pr
 
 # Quantidade de produto por categoria
 
-![Circuit-Breaker](Barra.png)
+![Circuit-Breaker](img/Barra.png)
 
 # Quantidade de entrega por transportadora
 
-![Circuit-Breaker](Rosca.png)
+![Circuit-Breaker](img/Rosca.png)
 
 # Dashboard completo
 
-![Circuit-Breaker](Geral.png)
+![Circuit-Breaker](img/Geral.png)
